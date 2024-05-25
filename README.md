@@ -30,4 +30,6 @@
   };
 
 networkErrorHandler.registryErrorHandler(networkErrorHandlers)
+
+networkErrorHandler.handle(error)
 ```
