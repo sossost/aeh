@@ -1,16 +1,5 @@
-import * as networkErrorHandler from "./network-error-handler";
+import { restfeh } from "./restfeh";
 
-import type {
-  Handlers,
-  BaseError,
-  RegistryErrorHandler,
-  AddHandlerType,
-} from "./types";
+import type { BaseError, RegistryErrorHandler } from "./restfeh";
 
-export {
-  networkErrorHandler,
-  Handlers,
-  BaseError,
-  RegistryErrorHandler,
-  AddHandlerType,
-};
+export { restfeh, BaseError, RegistryErrorHandler };
