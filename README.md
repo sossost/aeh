@@ -10,22 +10,22 @@
 ```javascript
   const networkErrorHandlers = {
     "test-endpoint-1": {
-      401: (error) => handler1(error),
-      403: {
-        "invalid-token": (error) => handler2(error),
-        "expired-token": (error) => handler3(error),
-      },
-      404: (error) => handler4(error),
-      500: (error) => handler5(error),
+      ALL:{
+        401: () => navigateToLoginPage(),
+      }
+      GET:{
+        404: (error) => handler(error),
+        500: {
+          code1: (error) => handler2(error)
+          ...
+        }
+      }
+      POST:{
+        ...
+      }
     },
     "test-endpoint-2": {
-      401: (error) => handler1(error),
-      403: {
-        "invalid-token": (error) => handler2(error),
-        "expired-token": (error) => handler3(error),
-      },
-      404: (error) => handler4(error),
-      500: (error) => handler5(error),
+      ...
     },
   };
 
