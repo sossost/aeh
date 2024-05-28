@@ -1,4 +1,4 @@
-import * as restfeh from "./restfeh";
+import * as restfeh from "./resteh";
 
 import type { BaseError, RegistryErrorHandler } from "./types";
 

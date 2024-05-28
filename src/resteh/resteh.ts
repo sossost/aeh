@@ -7,7 +7,7 @@ import {
   RegistryErrorHandler,
 } from "./types";
 
-class Restfeh {
+class Resfeh {
   private handlers: Handlers = {};
 
   registryErrorHandler(errorObject: RegistryErrorHandler) {
@@ -135,4 +135,4 @@ class Restfeh {
   }
 }
 
-export const restfeh = new Restfeh();
+export const resteh = new Resfeh();

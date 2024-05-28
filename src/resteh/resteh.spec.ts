@@ -1,9 +1,9 @@
-import { restfeh } from "./restfeh";
+import { resteh } from "./resteh";
 import { BaseError, HandlerFunction, RegistryErrorHandler } from "./types";
 
 describe("Restfeh", () => {
   beforeEach(() => {
-    restfeh.clearRegistry();
+    resteh.clearRegistry();
   });
 
   it("should register and handle an error with specific method, status, and code", () => {
@@ -19,7 +19,7 @@ describe("Restfeh", () => {
       },
     };
 
-    restfeh.registryErrorHandler(errorHandlers);
+    resteh.registryErrorHandler(errorHandlers);
 
     const error: BaseError = {
       endpoint: "/test-endpoint",
@@ -30,7 +30,7 @@ describe("Restfeh", () => {
       handled: false,
     };
 
-    restfeh.handle(error);
+    resteh.handle(error);
 
     expect(mockHandler).toHaveBeenCalledWith(error);
     expect(error.handled).toBe(true);
@@ -47,7 +47,7 @@ describe("Restfeh", () => {
       },
     };
 
-    restfeh.registryErrorHandler(errorHandlers);
+    resteh.registryErrorHandler(errorHandlers);
 
     const error: BaseError = {
       endpoint: "/test-endpoint",
@@ -57,7 +57,7 @@ describe("Restfeh", () => {
       handled: false,
     };
 
-    restfeh.handle(error);
+    resteh.handle(error);
 
     expect(mockHandler).toHaveBeenCalledWith(error);
     expect(error.handled).toBe(true);
@@ -72,7 +72,7 @@ describe("Restfeh", () => {
       },
     };
 
-    restfeh.registryErrorHandler(errorHandlers);
+    resteh.registryErrorHandler(errorHandlers);
 
     const error: BaseError = {
       endpoint: "/test-endpoint",
@@ -82,7 +82,7 @@ describe("Restfeh", () => {
       handled: false,
     };
 
-    restfeh.handle(error);
+    resteh.handle(error);
 
     expect(mockHandler).toHaveBeenCalledWith(error);
     expect(error.handled).toBe(true);
@@ -95,7 +95,7 @@ describe("Restfeh", () => {
       default: mockHandler,
     };
 
-    restfeh.registryErrorHandler(errorHandlers);
+    resteh.registryErrorHandler(errorHandlers);
 
     const error: BaseError = {
       endpoint: "/unknown-endpoint",
@@ -105,7 +105,7 @@ describe("Restfeh", () => {
       handled: false,
     };
 
-    restfeh.handle(error);
+    resteh.handle(error);
 
     expect(mockHandler).toHaveBeenCalledWith(error);
     expect(error.handled).toBe(true);
@@ -122,7 +122,7 @@ describe("Restfeh", () => {
       },
     };
 
-    restfeh.registryErrorHandler(errorHandlers);
+    resteh.registryErrorHandler(errorHandlers);
 
     const error: BaseError = {
       endpoint: "/test-endpoint",
@@ -134,7 +134,7 @@ describe("Restfeh", () => {
 
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-    restfeh.handle(error);
+    resteh.handle(error);
 
     expect(mockHandler).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith("Unhandled error:", error);
