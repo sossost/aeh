@@ -1,61 +1,52 @@
 import {
   AddHandlerType,
   BaseError,
+  Code,
+  Endpoint,
   HandlerFunction,
   Handlers,
   Method,
   RegistryErrorHandler,
+  Status,
 } from "./types";
 
-class Resfeh {
+class Resteh {
   private handlers: Handlers = {};
 
   registryErrorHandler(errorObject: RegistryErrorHandler) {
-    Object.entries(errorObject).forEach(
-      ([endpoint, methodStatusHandlerCode]) => {
-        if (typeof methodStatusHandlerCode === "function") {
+    const processHandlers = (
+      obj: RegistryErrorHandler,
+      context: {
+        endpoint?: Endpoint;
+        method?: Method;
+        status?: Status;
+        code?: Code;
+      } = {}
+    ) => {
+      Object.entries(obj).forEach(([key, value]) => {
+        const nextContext = { ...context };
+        if (!context.endpoint) {
+          nextContext.endpoint = key as Endpoint;
+        } else if (!context.method) {
+          nextContext.method = key as Method;
+        } else if (!context.status) {
+          nextContext.status = key as Status;
+        } else if (!context.code) {
+          nextContext.code = key as Code;
+        }
+
+        if (typeof value === "function" && nextContext.endpoint) {
           this.addHandler({
-            endpoint,
-            handler: methodStatusHandlerCode as HandlerFunction,
+            ...(nextContext as Omit<AddHandlerType, "handler">),
+            handler: value as HandlerFunction,
           });
         } else {
-          Object.entries(methodStatusHandlerCode).forEach(
-            ([method, statusHandlerCode]) => {
-              if (typeof statusHandlerCode === "function") {
-                this.addHandler({
-                  endpoint,
-                  method: method as Method,
-                  handler: statusHandlerCode as HandlerFunction,
-                });
-              } else {
-                Object.entries(statusHandlerCode).forEach(
-                  ([status, handlerCode]) => {
-                    if (typeof handlerCode === "function") {
-                      this.addHandler({
-                        endpoint,
-                        method: method as Method,
-                        status,
-                        handler: handlerCode as HandlerFunction,
-                      });
-                    } else {
-                      Object.entries(handlerCode).forEach(([code, handler]) => {
-                        this.addHandler({
-                          endpoint,
-                          method: method as Method,
-                          status,
-                          code,
-                          handler: handler as HandlerFunction,
-                        });
-                      });
-                    }
-                  }
-                );
-              }
-            }
-          );
+          processHandlers(value as RegistryErrorHandler, nextContext);
         }
-      }
-    );
+      });
+    };
+
+    processHandlers(errorObject);
   }
 
   clearRegistry() {
@@ -65,38 +56,43 @@ class Resfeh {
   handle(error: BaseError) {
     const { endpoint, method, status, code } = error;
     const endpointKey = endpoint.replace(/^\//, "");
-    const methodKey = method ?? "ALL";
-    const statusKey = status ? String(status) : "ALL";
-    const codeKey = code ?? "ALL";
 
-    const endpointHandlers =
-      this.handlers[endpointKey] || this.handlers.default;
-    if (!endpointHandlers) {
-      this.unhandledError(error);
-      return;
-    }
-
-    const methodHandlers = endpointHandlers[methodKey] || endpointHandlers.ALL;
-    if (!methodHandlers) {
-      this.unhandledError(error);
-      return;
-    }
-
-    const statusHandlers = methodHandlers[statusKey] || methodHandlers.ALL;
-    if (!statusHandlers) {
-      this.unhandledError(error);
-      return;
-    }
-
-    const handler = statusHandlers[codeKey];
+    const handler = this.findHandler(endpointKey, method, status, code);
     if (handler) {
       handler(error);
       error.handled = true;
     } else {
       this.unhandledError(error);
     }
+  }
 
-    return;
+  private findHandler(
+    endpoint: Endpoint,
+    method?: Method,
+    status?: Status,
+    code?: Code
+  ): HandlerFunction | null {
+    if (!endpoint) return null;
+
+    const endpointHandlers = this.handlers[endpoint];
+    if (!endpointHandlers) return null;
+
+    const methodKey = method ?? "all_methods";
+    const statusKey = status ?? "all_statuses";
+    const codeKey = code ?? "all_codes";
+
+    const methodHandlers =
+      endpointHandlers[methodKey] || endpointHandlers.all_methods;
+    if (!methodHandlers) return null;
+
+    const statusHandlers =
+      methodHandlers[statusKey] || methodHandlers.all_statuses;
+    if (!statusHandlers) return null;
+
+    const codeHandlers = statusHandlers[codeKey] || statusHandlers.all_codes;
+    if (!codeHandlers) return null;
+
+    return typeof codeHandlers === "function" ? codeHandlers : null;
   }
 
   private addHandler({
@@ -107,13 +103,14 @@ class Resfeh {
     code,
   }: AddHandlerType) {
     const endpointKey = endpoint.replace(/^\//, "");
-    const methodKey = method ?? "ALL";
-    const statusKey = status ?? "ALL";
-    const codeKey = code ?? "ALL";
 
     if (!this.handlers[endpointKey]) {
       this.handlers[endpointKey] = {};
     }
+
+    const methodKey = method || "all_methods";
+    const statusKey = status || "all_statuses";
+    const codeKey = code || "all_codes";
 
     if (!this.handlers[endpointKey][methodKey]) {
       this.handlers[endpointKey][methodKey] = {};
@@ -123,16 +120,14 @@ class Resfeh {
       this.handlers[endpointKey][methodKey][statusKey] = {};
     }
 
-    if (!this.handlers[endpointKey][methodKey][statusKey][codeKey]) {
-      this.handlers[endpointKey][methodKey][statusKey][codeKey] = handler;
-    }
-
-    return this;
+    this.handlers[endpointKey][methodKey][statusKey][codeKey] = handler;
   }
 
   private unhandledError(error: BaseError) {
-    console.error("Unhandled error:", error);
+    throw new Error(
+      `Unhandled error: ${error.endpoint} ${error.method} ${error.status} ${error.code}`
+    );
   }
 }
 
-export const resteh = new Resfeh();
+export const resteh = new Resteh();
