@@ -1,5 +1,5 @@
-import { restfeh } from "./resteh";
+import { aeh } from "./aeh";
 
-import type { BaseError, RegistryErrorHandler } from "./resteh";
+import type { BaseError, RegistryErrorHandler } from "./aeh";
 
 export { restfeh, BaseError, RegistryErrorHandler };
