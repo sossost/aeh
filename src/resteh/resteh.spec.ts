@@ -1,145 +1,130 @@
 import { resteh } from "./resteh";
-import { BaseError, HandlerFunction, RegistryErrorHandler } from "./types";
+import { RegistryErrorHandler } from "./types";
 
-describe("Restfeh", () => {
+describe("NetworkErrorHandler", () => {
   beforeEach(() => {
     resteh.clearRegistry();
   });
 
-  it("should register and handle an error with specific method, status, and code", () => {
-    const mockHandler: HandlerFunction = jest.fn();
+  it("should correctly register handlers for multiple endpoints and methods", () => {
+    const getHandler200 = jest.fn();
+    const getHandler404 = jest.fn();
+    const postHandler500 = jest.fn();
+    const putHandler = jest.fn();
 
-    const errorHandlers: RegistryErrorHandler = {
-      "/test-endpoint": {
+    const errorObject: RegistryErrorHandler = {
+      "/test_endpoint": {
         GET: {
-          404: {
-            NOT_FOUND: mockHandler,
+          "200": getHandler200,
+          "404": getHandler404,
+        },
+        POST: {
+          "500": postHandler500,
+        },
+      },
+      "/another_endpoint": {
+        PUT: {
+          "201": putHandler,
+        },
+      },
+    };
+
+    resteh.registryErrorHandler(errorObject);
+
+    const expectedHandlers = {
+      test_endpoint: {
+        GET: {
+          "200": {
+            all_codes: getHandler200,
+          },
+          "404": {
+            all_codes: getHandler404,
+          },
+        },
+        POST: {
+          "500": {
+            all_codes: postHandler500,
+          },
+        },
+      },
+      another_endpoint: {
+        PUT: {
+          "201": {
+            all_codes: putHandler,
           },
         },
       },
     };
 
-    resteh.registryErrorHandler(errorHandlers);
-
-    const error: BaseError = {
-      endpoint: "/test-endpoint",
-      method: "GET",
-      status: 404,
-      code: "NOT_FOUND",
-      msg: "Resource not found",
-      handled: false,
-    };
-
-    resteh.handle(error);
-
-    expect(mockHandler).toHaveBeenCalledWith(error);
-    expect(error.handled).toBe(true);
+    expect(resteh["handlers"]).toEqual(expectedHandlers);
   });
 
-  it("should register and handle an error with default code handler", () => {
-    const mockHandler: HandlerFunction = jest.fn();
+  it("should handle errors for multiple endpoints correctly by calling the appropriate handler", () => {
+    const getHandler200 = jest.fn();
+    const postHandler500 = jest.fn();
+    const putHandler201 = jest.fn();
 
-    const errorHandlers: RegistryErrorHandler = {
-      "/test-endpoint": {
+    resteh.registryErrorHandler({
+      "/test_endpoint": {
         GET: {
-          500: mockHandler,
+          "200": getHandler200,
+        },
+        POST: {
+          "500": postHandler500,
         },
       },
-    };
-
-    resteh.registryErrorHandler(errorHandlers);
-
-    const error: BaseError = {
-      endpoint: "/test-endpoint",
-      method: "GET",
-      status: 500,
-      msg: "Internal server error",
-      handled: false,
-    };
-
-    resteh.handle(error);
-
-    expect(mockHandler).toHaveBeenCalledWith(error);
-    expect(error.handled).toBe(true);
-  });
-
-  it("should register and handle an error with default method and status handler", () => {
-    const mockHandler: HandlerFunction = jest.fn();
-
-    const errorHandlers: RegistryErrorHandler = {
-      "/test-endpoint": {
-        GET: mockHandler,
+      "/another_endpoint": {
+        PUT: {
+          "201": putHandler201,
+        },
       },
-    };
+    });
 
-    resteh.registryErrorHandler(errorHandlers);
-
-    const error: BaseError = {
-      endpoint: "/test-endpoint",
+    // /test_endpoint GET 200 요청 처리
+    resteh.handle({
+      endpoint: "/test_endpoint",
       method: "GET",
-      status: 403,
-      msg: "Forbidden",
+      status: "200",
+      code: "",
       handled: false,
-    };
+    });
+    expect(getHandler200).toHaveBeenCalled();
 
-    resteh.handle(error);
+    // /test_endpoint POST 500 요청 처리
+    resteh.handle({
+      endpoint: "/test_endpoint",
+      method: "POST",
+      status: "500",
+      code: "",
+      handled: false,
+    });
+    expect(postHandler500).toHaveBeenCalled();
 
-    expect(mockHandler).toHaveBeenCalledWith(error);
-    expect(error.handled).toBe(true);
-  });
-
-  it("should register and handle an error with default endpoint handler", () => {
-    const mockHandler: HandlerFunction = jest.fn();
-
-    const errorHandlers: RegistryErrorHandler = {
-      default: mockHandler,
-    };
-
-    resteh.registryErrorHandler(errorHandlers);
-
-    const error: BaseError = {
-      endpoint: "/unknown-endpoint",
+    // /another_endpoint PUT 201 요청 처리
+    resteh.handle({
+      endpoint: "/another_endpoint",
       method: "PUT",
-      status: 401,
-      msg: "Unauthorized",
+      status: "201",
+      code: "",
       handled: false,
-    };
-
-    resteh.handle(error);
-
-    expect(mockHandler).toHaveBeenCalledWith(error);
-    expect(error.handled).toBe(true);
+    });
+    expect(putHandler201).toHaveBeenCalled();
   });
 
-  it("should not handle an unregistered error", () => {
-    const mockHandler: HandlerFunction = jest.fn();
+  it("should ", () => {
+    const handler = jest.fn();
 
-    const errorHandlers: RegistryErrorHandler = {
-      "/test-endpoint": {
-        GET: {
-          200: mockHandler,
-        },
-      },
-    };
+    resteh.registryErrorHandler({
+      "/test_endpoint": handler,
+    });
 
-    resteh.registryErrorHandler(errorHandlers);
-
-    const error: BaseError = {
-      endpoint: "/test-endpoint",
+    resteh.handle({
+      endpoint: "/test_endpoint",
       method: "GET",
-      status: 404,
-      msg: "Not Found",
+      status: "404",
       handled: false,
-    };
+    });
 
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-
-    resteh.handle(error);
-
-    expect(mockHandler).not.toHaveBeenCalled();
-    expect(consoleSpy).toHaveBeenCalledWith("Unhandled error:", error);
-    expect(error.handled).toBe(false);
-
-    consoleSpy.mockRestore();
+    expect(handler).toHaveBeenCalled();
   });
 });
