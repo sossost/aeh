@@ -1,9 +1,9 @@
-import { resteh } from "./resteh";
+import { aeh } from "./aeh";
 import { RegistryErrorHandler } from "./types";
 
 describe("NetworkErrorHandler", () => {
   beforeEach(() => {
-    resteh.clearRegistry();
+    aeh.clearRegistry();
   });
 
   it("should correctly register handlers for multiple endpoints and methods", () => {
@@ -29,7 +29,7 @@ describe("NetworkErrorHandler", () => {
       },
     };
 
-    resteh.registryErrorHandler(errorObject);
+    aeh.registryErrorHandler(errorObject);
 
     const expectedHandlers = {
       test_endpoint: {
@@ -56,7 +56,7 @@ describe("NetworkErrorHandler", () => {
       },
     };
 
-    expect(resteh["handlers"]).toEqual(expectedHandlers);
+    expect(aeh["handlers"]).toEqual(expectedHandlers);
   });
 
   it("should handle errors for multiple endpoints correctly by calling the appropriate handler", () => {
@@ -64,7 +64,7 @@ describe("NetworkErrorHandler", () => {
     const postHandler500 = jest.fn();
     const putHandler201 = jest.fn();
 
-    resteh.registryErrorHandler({
+    aeh.registryErrorHandler({
       "/test_endpoint": {
         GET: {
           "200": getHandler200,
@@ -81,7 +81,7 @@ describe("NetworkErrorHandler", () => {
     });
 
     // /test_endpoint GET 200 요청 처리
-    resteh.handle({
+    aeh.handle({
       endpoint: "/test_endpoint",
       method: "GET",
       status: "200",
@@ -91,7 +91,7 @@ describe("NetworkErrorHandler", () => {
     expect(getHandler200).toHaveBeenCalled();
 
     // /test_endpoint POST 500 요청 처리
-    resteh.handle({
+    aeh.handle({
       endpoint: "/test_endpoint",
       method: "POST",
       status: "500",
@@ -101,7 +101,7 @@ describe("NetworkErrorHandler", () => {
     expect(postHandler500).toHaveBeenCalled();
 
     // /another_endpoint PUT 201 요청 처리
-    resteh.handle({
+    aeh.handle({
       endpoint: "/another_endpoint",
       method: "PUT",
       status: "201",
@@ -114,11 +114,11 @@ describe("NetworkErrorHandler", () => {
   it("should ", () => {
     const handler = jest.fn();
 
-    resteh.registryErrorHandler({
+    aeh.registryErrorHandler({
       "/test_endpoint": handler,
     });
 
-    resteh.handle({
+    aeh.handle({
       endpoint: "/test_endpoint",
       method: "GET",
       status: "404",

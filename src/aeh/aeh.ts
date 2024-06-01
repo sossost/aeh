@@ -10,7 +10,7 @@ import {
   Status,
 } from "./types";
 
-class Resteh {
+class Aeh {
   private handlers: Handlers = {};
 
   registryErrorHandler(errorObject: RegistryErrorHandler) {
@@ -130,4 +130,4 @@ class Resteh {
   }
 }
 
-export const resteh = new Resteh();
+export const aeh = new Aeh();
