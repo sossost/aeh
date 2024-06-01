@@ -8,7 +8,7 @@
 
 ### 예시
 ```javascript
-  const handers: RegistryErrorHandler = {
+  const handlers: RegistryErrorHandler = {
     "test-endpoint-1": {
       // 모든 method에 대한 401 에러 핸들링
       401: () => navigateToLoginPage(),
