@@ -1,48 +1,62 @@
-type Endpoint = string;
-export type Method = "GET" | "POST" | "PUT" | "DELETE" | "ALL";
-type Status = string;
-type Code = string;
+export type Endpoint = string;
+export type Method =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"
+  | "HEAD"
+  | "OPTIONS"
+  | "CONNECT"
+  | "TRACE"
+  | "ALL";
+export type Status = string;
+export type Code = string;
 export type HandlerFunction = (error: BaseError) => void;
-type StatusHandlers = {
-  [code: Code]: HandlerFunction;
+
+export type CodeHandlers = {
+  [key in Code]?: HandlerFunction;
 };
-type MethodHandlers = {
-  [status: Status]: StatusHandlers;
+
+export type StatusHandlers = {
+  [key in Status]?: HandlerFunction | CodeHandlers;
 };
-type EndpointHandlers = {
-  [method: string]: MethodHandlers;
+
+export type MethodHandlers = {
+  [key in Method]?: HandlerFunction | StatusHandlers | CodeHandlers;
 };
+
 export type Handlers = {
-  [endpoint: Endpoint]: EndpointHandlers;
+  [endpoint: Endpoint]: {
+    [key: string]: {
+      [key: string]: {
+        [key: string]: HandlerFunction;
+      };
+    };
+  };
 };
+
 export type BaseError = {
   endpoint: Endpoint;
   method: Method;
-  status: number;
+  status: Status;
   code?: Code;
   msg?: string;
   handled?: boolean;
 };
+
 export type RegistryErrorHandler = {
   [key: Endpoint]:
-    | HandlerFunction
-    | {
-        [key in Method]?:
-          | HandlerFunction
-          | {
-              [key: Status]:
-                | HandlerFunction
-                | {
-                    [key: Code]: HandlerFunction;
-                  };
-            };
-      };
+    | MethodHandlers
+    | StatusHandlers
+    | CodeHandlers
+    | HandlerFunction;
 };
 
 export type AddHandlerType = {
   endpoint: Endpoint;
-  method?: Method;
-  status?: Status;
-  code?: Code;
+  method: Method;
+  status: Status;
+  code: Code;
   handler: HandlerFunction;
 };
