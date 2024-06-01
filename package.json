@@ -1,5 +1,5 @@
 {
-  "name": "@sossost/network-error-handler",
+  "name": "@sossost/aeh",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
