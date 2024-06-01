@@ -8,7 +8,7 @@
 
 ### 예시
 ```javascript
-  const networkErrorHandlers: RegistryErrorHandler = {
+  const handers: RegistryErrorHandler = {
     "test-endpoint-1": {
       // 모든 method에 대한 401 에러 핸들링
       401: () => navigateToLoginPage(),
@@ -30,8 +30,8 @@
     },
   };
 
-networkErrorHandler.registryErrorHandler(networkErrorHandlers);
+aeh.registryErrorHandler(handlers);
 
 const baseError = formatToBaseError(error);
-networkErrorHandler.handle(baseError);
+aeh.handle(baseError);
 ```
