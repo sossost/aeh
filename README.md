@@ -8,14 +8,15 @@
 
 ### 예시
 ```javascript
-  const networkErrorHandlers = {
+  const networkErrorHandlers: RegistryErrorHandler = {
     "test-endpoint-1": {
-      ALL:{
-        401: () => navigateToLoginPage(),
-      }
+      // 모든 method에 대한 401 에러 핸들링
+      401: () => navigateToLoginPage(),
+      // GET method에 대한 각 status code 핸들링
       GET:{
         404: (error) => handler(error),
         500: {
+          // 추가로 넘겨준 code에 대한 핸들링
           code1: (error) => handler2(error)
           ...
         }
@@ -29,7 +30,8 @@
     },
   };
 
-networkErrorHandler.registryErrorHandler(networkErrorHandlers)
+networkErrorHandler.registryErrorHandler(networkErrorHandlers);
 
-networkErrorHandler.handle(error)
+const baseError = formatToBaseError(error);
+networkErrorHandler.handle(baseError);
 ```
